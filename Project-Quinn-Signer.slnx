@@ -1,6 +1,0 @@
-﻿<Solution>
-  <Project Path="Mediapipe.Runtime.csproj" />
-  <Project Path="Assembly-CSharp.csproj" />
-  <Project Path="Mediapipe.Tests.EditMode.csproj" />
-  <Project Path="TensorFlowLite.csproj" />
-</Solution>
