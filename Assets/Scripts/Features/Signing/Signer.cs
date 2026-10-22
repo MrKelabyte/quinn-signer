@@ -1,11 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Common;
 using Core.SceneManagement;
-using Engine;
 using Features.Gameplay.Entities.Enemy;
 using Features.Gameplay.Entities.Player;
+using Features.Signing.Recognition;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -14,8 +13,10 @@ namespace Features.Signing
 {
     public class Signer : MonoBehaviour
     {
-        [Header("SLRTK Overhead")]
-        public SimpleExecutionEngine engine;
+        [Header("Sign Recognition")]
+        [Tooltip("Any component that implements ISignRecognizer (e.g. DevKeySignRecognizer). " +
+                 "If left empty, Signer uses one on this same GameObject.")]
+        [SerializeField] private MonoBehaviour recognizerSource;
 
         [Header("Plug in")]
         public WordBank wordBank;
@@ -28,46 +29,63 @@ namespace Features.Signing
         [Header("Win")]
         [SerializeField] private string winSceneName = "WinScene";
         [SerializeField] private float winDelaySeconds = 2f;
-        
+
         [Header("Player Data")]
         [SerializeField] private PlayerHealth playerHealth;
 
         // internals
-        private bool _hasExecuted = false;
+        private ISignRecognizer _recognizer;
+        private bool _subscribed;
         private SceneBindings _bindings;
         private readonly List<string> _filterWords = new();
-        private bool _signingActive = false;
+
+        // A destroyed MonoBehaviour still looks non-null through an interface reference,
+        // so check it the Unity way when the recognizer is a Unity object.
+        private bool HasRecognizer => _recognizer is Object unityObject ? unityObject != null : _recognizer != null;
+
+        private void OnValidate()
+        {
+            if (recognizerSource && recognizerSource is not ISignRecognizer)
+            {
+                Debug.LogWarning($"{name}: {recognizerSource.GetType().Name} does not implement ISignRecognizer.", this);
+                recognizerSource = null;
+            }
+        }
 
         private void Awake()
         {
             if (background) background.color = Color.black;
-            if (engine) engine.Toggle();
+
+            var recognizer = recognizerSource as ISignRecognizer ?? GetComponent<ISignRecognizer>();
+            if (recognizer == null)
+                Debug.LogWarning($"{name}: no sign recognizer found. Add a DevKeySignRecognizer (or another ISignRecognizer) to this GameObject.", this);
+
+            BindRecognizer(recognizer);
         }
 
         private void Start()
         {
+            StopSigning(classify: false);           // make sure we start idle
+            ApplyRecognizerFilterToDictionaryWords(); // one-time setup (used to be polled every frame in Update)
             StartCoroutine(AssignEnemyLabelsWhenReady());
-            StartCoroutine(ForceEngineIdleAtLaunch());
         }
 
         private void Update()
         {
-            if (!_hasExecuted && engine && engine.recognizer != null)
-            {
-                engine.recognizer.AddCallback("check", (word) => OnSignRecognized(word, 1.0f));
-                engine.recognizer.outputFilters.Clear();
-                ApplyRecognizerFilterToDictionaryWords();
-                _hasExecuted = true;
-            }
-
-            if (Input.GetKeyDown(KeyCode.Alpha1)) SimulateCorrectSign();
-            if (Input.GetKeyDown(KeyCode.Alpha2)) SimulateIncorrectSign();
-            
             UserSigning();
         }
 
-        private void OnEnable()  => SceneManager.sceneLoaded += OnSceneLoaded;
-        private void OnDisable() => SceneManager.sceneLoaded -= OnSceneLoaded;
+        private void OnEnable()
+        {
+            SceneManager.sceneLoaded += OnSceneLoaded;
+            SubscribeToRecognizer();
+        }
+
+        private void OnDisable()
+        {
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+            UnsubscribeFromRecognizer();
+        }
 
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
@@ -75,26 +93,63 @@ namespace Features.Signing
 
             if (!_bindings)
             {
-                _hasExecuted = false;
                 _filterWords.Clear();
+                ApplyRecognizerFilterToDictionaryWords();
                 return;
             }
 
             wordBank            = _bindings.wordBank;
-            engine              = _bindings.engine;
             inferenceText       = _bindings.inferenceText;
             confidenceScoreText = _bindings.condifenceScoreText;
             background          = _bindings.background;
 
-            _hasExecuted = false;
+            // Only switch recognizers if this scene provides one.
+            if (_bindings.Recognizer != null)
+                BindRecognizer(_bindings.Recognizer);
 
             if (background) background.color = Color.black;
-            if (engine && !engine.enabled) engine.enabled = false;
 
             ApplyRecognizerFilterToDictionaryWords();
 
             StartCoroutine(AssignEnemyLabelsWhenReady());
         }
+
+        // ---------- recognizer wiring ----------
+
+        private void BindRecognizer(ISignRecognizer recognizer)
+        {
+            if (ReferenceEquals(recognizer, _recognizer)) return;
+
+            var wasSubscribed = _subscribed;
+            UnsubscribeFromRecognizer();
+
+            _recognizer = recognizer;
+
+            if (wasSubscribed) SubscribeToRecognizer();
+            PushVocabulary();
+        }
+
+        private void SubscribeToRecognizer()
+        {
+            if (_subscribed || !HasRecognizer) return;
+            _recognizer.SignRecognized += OnSignRecognized;
+            _subscribed = true;
+        }
+
+        private void UnsubscribeFromRecognizer()
+        {
+            if (_subscribed && _recognizer != null)
+                _recognizer.SignRecognized -= OnSignRecognized;
+            _subscribed = false;
+        }
+
+        /// <summary>Tell the recognizer which words are currently in play.</summary>
+        private void PushVocabulary()
+        {
+            if (HasRecognizer) _recognizer.SetVocabulary(_filterWords);
+        }
+
+        // ---------- enemy words ----------
 
         public void RefreshEnemyLabels()
         {
@@ -127,14 +182,7 @@ namespace Features.Signing
 
             _filterWords.Clear();
             _filterWords.AddRange(chosen);
-            ApplyRecognizerFilterToDictionaryWords();
-
-            if (engine && engine.recognizer != null)
-            {
-                engine.recognizer.outputFilters.Clear();
-                if (_filterWords.Count > 0)
-                    engine.recognizer.outputFilters.Add(new FocusSublistFilter<string>(_filterWords));
-            }
+            ApplyRecognizerFilterToDictionaryWords(); // unchanged from before: dictionary words win when a recognizer is present
 
             for (int i = 0; i < enemyLabels.Length && i < _filterWords.Count; i++)
                 SafeSetEnemyWord(enemyLabels[i], _filterWords[i]);
@@ -146,44 +194,15 @@ namespace Features.Signing
             label.SetWord(word);
         }
 
-        private IEnumerator ForceEngineIdleAtLaunch()
-        {
-            yield return null;
-            if (!engine) yield break;
-
-            engine.Toggle();
-            _signingActive = false;
-            if (background) background.color = Color.black;
-        }
+        // ---------- signing input ----------
 
         private void UserSigning()
         {
             if (GameModeState.HintTypingModeActive)
                 return;
 
-            if (Input.GetKeyDown(KeyCode.Return))
-            {
-                if (engine && !_signingActive)
-                {
-                    engine.enabled = true;
-                    _signingActive = true;
-                }
-                if (background) background.color = Color.white;
-                engine.Toggle();
-            }
-
-            if (Input.GetKeyUp(KeyCode.Return))
-            {
-                if (engine) engine.buffer.TriggerCallbacks();
-                engine.Toggle();
-                if (background) background.color = Color.black;
-
-                if (engine && _signingActive)
-                {
-                    _signingActive = false;
-                    engine.enabled = false;
-                }
-            }
+            if (Input.GetKeyDown(KeyCode.Return)) StartSigning();
+            if (Input.GetKeyUp(KeyCode.Return))   StopSigning(classify: true);
         }
 
         public void BeginMobileSign()
@@ -191,13 +210,7 @@ namespace Features.Signing
             if (GameModeState.HintTypingModeActive)
                 return;
 
-            if (engine && !_signingActive)
-            {
-                engine.enabled = true;
-                _signingActive = true;
-            }
-            if (background) background.color = Color.white;
-            if (engine) engine.Toggle();
+            StartSigning();
         }
 
         public void EndMobileSign()
@@ -205,36 +218,29 @@ namespace Features.Signing
             if (GameModeState.HintTypingModeActive)
                 return;
 
-            if (engine) engine.buffer.TriggerCallbacks();
-            if (engine) engine.Toggle();
+            StopSigning(classify: true);
+        }
+
+        private void StartSigning()
+        {
+            if (background) background.color = Color.white;
+            if (HasRecognizer) _recognizer.BeginCapture();
+        }
+
+        /// <param name="classify">True: recognize what was signed. False: throw it away.</param>
+        private void StopSigning(bool classify)
+        {
+            if (HasRecognizer)
+            {
+                if (classify) _recognizer.EndCapture();
+                else _recognizer.CancelCapture();
+            }
+
             if (background) background.color = Color.black;
-
-            if (engine && _signingActive)
-            {
-                _signingActive = false;
-                engine.enabled = false;
-            }
         }
 
-        void SimulateCorrectSign()
-        {
-            var labels = FindObjectsByType<EnemyLabel>(FindObjectsSortMode.None);
-            foreach (var l in labels)
-            {
-                if (!string.IsNullOrEmpty(l.targetWord))
-                {
-                    OnSignRecognized(l.targetWord, 1.0f);
-                    return;
-                }
-            }
-            OnSignRecognized("dev_correct_missing", 1.0f);
-        }
+        // ---------- results ----------
 
-        void SimulateIncorrectSign()
-        {
-            OnSignRecognized("__dev_wrong__", 0.0f);
-        }
-        
         private void OnSignRecognized(string rawInput, float confidenceScore)
         {
             if (GameModeState.HintTypingModeActive)
@@ -326,13 +332,10 @@ namespace Features.Signing
                 }
             }
 
-            if (engine != null && engine.recognizer != null)
-            {
-                engine.recognizer.outputFilters.Clear();
-                if (_filterWords.Count > 0)
-                    engine.recognizer.outputFilters.Add(new FocusSublistFilter<string>(_filterWords));
-            }
+            PushVocabulary();
         }
+
+        // ---------- win ----------
 
         private IEnumerator CheckForWinNextFrame()
         {
@@ -346,7 +349,7 @@ namespace Features.Signing
 
         private void TriggerWin()
         {
-            if (engine) engine.enabled = false;
+            if (HasRecognizer) _recognizer.CancelCapture();
             if (background) background.color = Color.black;
             StartCoroutine(LoadWinAfterDelay());
         }
@@ -368,6 +371,8 @@ namespace Features.Signing
 
             StartCoroutine(CheckForWinNextFrame());
         }
+
+        // ---------- dictionary filter ----------
 
         private List<string> GetDictionaryWords()
         {
@@ -392,17 +397,11 @@ namespace Features.Signing
 
         private void ApplyRecognizerFilterToDictionaryWords()
         {
-            if (engine == null) return;
-            if (engine.recognizer == null) return;
-
-            var focus = GetDictionaryWords();
-
-            engine.recognizer.outputFilters.Clear();
-            if (focus.Count > 0)
-                engine.recognizer.outputFilters.Add(new FocusSublistFilter<string>(focus));
+            if (!HasRecognizer) return;
 
             _filterWords.Clear();
-            _filterWords.AddRange(focus);
+            _filterWords.AddRange(GetDictionaryWords());
+            PushVocabulary();
         }
     }
 }

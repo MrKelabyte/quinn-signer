@@ -3861,12 +3861,6 @@ PrefabInstance:
       addedObject: {fileID: 252703888}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b055499373f889c478eafd754d10eead, type: 3}
---- !u!1 &677488779 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5002240846802208805, guid: b055499373f889c478eafd754d10eead,
-    type: 3}
-  m_PrefabInstance: {fileID: 677488778}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &677488780 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7287385780542945416, guid: b055499373f889c478eafd754d10eead,
@@ -3883,18 +3877,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &677488786 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 7951677543806372186, guid: b055499373f889c478eafd754d10eead,
-    type: 3}
-  m_PrefabInstance: {fileID: 677488778}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 677488779}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0ce881f852aa24ed8aada6bc011e617a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &691727987
@@ -6262,6 +6244,7 @@ GameObject:
   - component: {fileID: 1077422348}
   - component: {fileID: 1077422349}
   - component: {fileID: 1077422350}
+  - component: {fileID: 1077422351}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -6355,7 +6338,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 514134fe64f514afcac1e9aa822de7bb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Features.Signing.Signer
-  engine: {fileID: 677488786}
+  recognizerSource: {fileID: 0}
   wordBank: {fileID: 1077422347}
   inferenceText: {fileID: 677488781}
   confidenceScoreText: {fileID: 1104989249}
@@ -6394,9 +6377,24 @@ MonoBehaviour:
   hintPanel: {fileID: 1806218576}
   rawImage: {fileID: 1524368504}
   inputField: {fileID: 1138296571}
-  slrtkPanel: {fileID: 677488779}
+  slrtkPanel: {fileID: 0}
   extraTextPanel: {fileID: 677488780}
   _hintModeEnabled: 0
+--- !u!114 &1077422351
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1077422343}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fd2b74956c20c146827040311bfa83f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Features.Signing.Recognition.DevKeySignRecognizer
+  instantCorrectKey: 49
+  instantWrongKey: 50
+  correctConfidence: 1
 --- !u!114 &1104989249 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6707604756167233905, guid: b055499373f889c478eafd754d10eead,
@@ -7149,7 +7147,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Core.SceneManagement.SceneBindings
   wordBank: {fileID: 1077422347}
-  engine: {fileID: 0}
+  recognizer: {fileID: 0}
   inferenceText: {fileID: 0}
   condifenceScoreText: {fileID: 0}
   background: {fileID: 0}

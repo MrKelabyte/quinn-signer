@@ -9432,18 +9432,6 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 612887038}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1256001963 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5082976388003316707, guid: 38d17c969802c7a42b412a140d2f1e52,
-    type: 3}
-  m_PrefabInstance: {fileID: 696972011}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0ce881f852aa24ed8aada6bc011e617a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1001 &1264433518
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9652,6 +9640,7 @@ GameObject:
   - component: {fileID: 1283563796}
   - component: {fileID: 1283563799}
   - component: {fileID: 1283563798}
+  - component: {fileID: 1283563800}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -9745,7 +9734,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 514134fe64f514afcac1e9aa822de7bb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Features.Signing.Signer
-  engine: {fileID: 1256001963}
+  recognizerSource: {fileID: 0}
   wordBank: {fileID: 1871650027286723731, guid: 5a853014aa5bc4e83b738058a5a8437c,
     type: 3}
   inferenceText: {fileID: 2061129092}
@@ -9755,6 +9744,21 @@ MonoBehaviour:
   winSceneName: 
   winDelaySeconds: 0
   playerHealth: {fileID: 0}
+--- !u!114 &1283563800
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1283563795}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fd2b74956c20c146827040311bfa83f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Features.Signing.Recognition.DevKeySignRecognizer
+  instantCorrectKey: 49
+  instantWrongKey: 50
+  correctConfidence: 1
 --- !u!1001 &1290065768
 PrefabInstance:
   m_ObjectHideFlags: 0
