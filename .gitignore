@@ -112,3 +112,6 @@ InitTestScene*.unity*
 .idea/
 .DS_Store
 .vsconfig
+
+/[Aa]ssets/SLRTk/
+/[Aa]ssets/SLRTk.meta

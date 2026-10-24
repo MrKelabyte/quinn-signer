@@ -31,7 +31,7 @@ namespace Multiplayer
         private async void Start()
         {
             if (networkManager == null)
-                networkManager = FindObjectOfType<NetworkManager>();
+                networkManager = FindFirstObjectByType<NetworkManager>(); // one-time fallback
 
             if (unityTransport == null && networkManager != null)
                 unityTransport = networkManager.GetComponent<UnityTransport>();
@@ -142,7 +142,7 @@ namespace Multiplayer
             }
         }
 
-        private void SetStatus(string message)
+        public void SetStatus(string message)
         {
             Debug.Log(message);
 
@@ -150,4 +150,4 @@ namespace Multiplayer
                 statusText.text = message;
         }
     }
-}
+}

@@ -1,0 +1,12 @@
+<!--
+  Keeps SLRTk's protobuf message types from being stripped in IL2CPP builds.
+  Protobuf finds these types by reflection, so the code stripper can't see they're used
+  (SLRTk's README: IL2CPP link errors surface as IL1005 against Google.Protobuf).
+-->
+<linker>
+  <assembly fullname="Google.Protobuf" preserve="all" />
+  <assembly fullname="Assembly-CSharp">
+    <namespace fullname="GTk.Bindings" preserve="all" />
+    <namespace fullname="CoreTk.Pipeline" preserve="all" />
+  </assembly>
+</linker>

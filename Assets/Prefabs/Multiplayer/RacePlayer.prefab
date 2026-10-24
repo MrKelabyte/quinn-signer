@@ -334,10 +334,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
   GlobalObjectIdHash: 1224492457
   InScenePlacedSourceGlobalObjectIdHash: 0
+  m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
   Ownership: 1
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
+  m_InScenePlaced: 0
   ActiveSceneSynchronization: 0
   SceneMigrationSynchronization: 1
   SpawnWithObservers: 1
@@ -373,23 +375,56 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Multiplayer.NetworkRacePlayer
   ShowTopMostFoldoutHeaderGroup: 1
-  boostAmount: 5
-  visualMoveLerp: 10
+  baseSpeed: 42
+  acceleration: 22
+  yawRate: 85
+  pitchRate: 60
+  maxPitch: 40
+  steerAssist: 1.2
+  bankAngle: 35
+  autopilotSpeedFactor: 0.6
+  remoteSmoothing: 12
+  boostPerCorrect: 0.25
+  boostSecondsBase: 3
+  boostSecondsPerCorrect: 2
+  allWrongSlowdown: 0.85
+  visualRotationOffset: {x: 0, y: 180, z: 0}
+  centerModelOnPivot: 1
   shipVisual: {fileID: 7483950394711587598}
   cameraFollowTarget: {fileID: 4757413825378297036}
-  swipeInputReader: {fileID: 5493391275912749218}
   nameText: {fileID: 958778684419023814}
-  SpawnPosition:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: {x: 0, y: 0, z: 0}
+  swipeInputReader: {fileID: 5493391275912749218}
   Progress:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
     m_InternalValue: 0
-  CurrentPrompt:
+  FinishTime:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: -1
+  SignsCorrect:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  SignsAnswered:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  TopSpeed:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  BoostsEarned:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  LasersFired:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
@@ -534,7 +569,7 @@ PrefabInstance:
     - target: {fileID: -4216859302048453862, guid: eadac7660e4969a4c91c550f10746636,
         type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.7071068
+      value: 0.7071068
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: eadac7660e4969a4c91c550f10746636,
         type: 3}
@@ -549,7 +584,7 @@ PrefabInstance:
     - target: {fileID: -4216859302048453862, guid: eadac7660e4969a4c91c550f10746636,
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: -90
+      value: 90
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: eadac7660e4969a4c91c550f10746636,
         type: 3}

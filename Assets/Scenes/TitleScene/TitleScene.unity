@@ -2713,6 +2713,9 @@ MonoBehaviour:
   shopTheme: {fileID: 8300000, guid: 9538b55ffc2c8c14aba972ceaecb571d, type: 3}
   winTheme: {fileID: 8300000, guid: eb548311b10f04602adbfa204b4c84c0, type: 3}
   gameOverTheme: {fileID: 8300000, guid: c9dc0f98ca45c6640958459cac3b6317, type: 3}
+  raceThemes:
+  - {fileID: 8300000, guid: 3fb27f8f8bbb3ad4d9598ce301a3ffed, type: 3}
+  - {fileID: 8300000, guid: 4cf951d1c2d5bb445975e3ea8d891867, type: 3}
 --- !u!82 &1846133105
 AudioSource:
   m_ObjectHideFlags: 0

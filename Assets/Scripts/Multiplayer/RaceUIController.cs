@@ -4,6 +4,10 @@ using Unity.Netcode;
 
 namespace Multiplayer
 {
+    /// <summary>
+    /// Simple status text + name entry. Not used in RaceScene right now (RaceHUD and
+    /// LobbyUIController cover this), but kept working in case a scene references it.
+    /// </summary>
     public class RaceUIController : MonoBehaviour
     {
         public TMP_InputField nameInput;
@@ -11,41 +15,31 @@ namespace Multiplayer
 
         private void Update()
         {
-            if (RaceManager.Instance == null || statusText == null)
+            var rm = RaceManager.Instance;
+            if (rm == null || !rm.IsSpawned || statusText == null)
                 return;
 
-            if (!RaceManager.Instance.RaceStarted.Value)
+            switch (rm.Phase.Value)
             {
-                int playerCount = NetworkManager.Singleton != null
-                    ? NetworkManager.Singleton.ConnectedClientsList.Count
-                    : 0;
-
-                statusText.text = playerCount < 2 ? "Waiting for second player..." : "Get Ready!";
-                return;
+                case RacePhase.Lobby:
+                    statusText.text = rm.GetPlayerCount() < rm.MinPlayers ? "Waiting for players..." : "Get Ready!";
+                    break;
+                case RacePhase.Countdown:
+                case RacePhase.Racing:
+                    statusText.text = "Race in progress!";
+                    break;
+                default:
+                    var local = NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : RaceManager.NoWinner;
+                    statusText.text = rm.IsWinner(local) ? "You Win!" : "You Lose!";
+                    break;
             }
-
-            if (!RaceManager.Instance.RaceFinished.Value)
-            {
-                statusText.text = "Race in progress!";
-                return;
-            }
-
-            ulong localId = NetworkManager.Singleton.LocalClientId;
-            statusText.text = RaceManager.Instance.WinnerClientId.Value == localId ? "You Win!" : "You Lose!";
         }
 
         public void ApplyLocalName()
         {
             string chosen = nameInput != null ? nameInput.text : "Player";
-
-            foreach (var player in FindObjectsOfType<NetworkRacePlayer>())
-            {
-                if (player.IsOwner)
-                {
-                    player.SubmitNameServerRpc(chosen);
-                    break;
-                }
-            }
+            if (NetworkRacePlayer.Local != null)
+                NetworkRacePlayer.Local.SubmitNameServerRpc(chosen);
         }
     }
 }

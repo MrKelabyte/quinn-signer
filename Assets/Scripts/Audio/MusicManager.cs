@@ -17,6 +17,9 @@ namespace Audio
         public AudioClip winTheme;
         public AudioClip gameOverTheme;
 
+        [Tooltip("Multiplayer race music. One is picked at random each time RaceScene loads.")]
+        public AudioClip[] raceThemes;
+
         private AudioSource _audioSource;
 
         private void Awake()
@@ -34,6 +37,12 @@ namespace Audio
 
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
+            if (scene.name == "RaceScene" && raceThemes != null && raceThemes.Length > 0)
+            {
+                PlayTheme(raceThemes[Random.Range(0, raceThemes.Length)]);
+                return;
+            }
+
             // swap based on scene name (or buildIndex, tag, etc.)
             switch (scene.buildIndex)
             {

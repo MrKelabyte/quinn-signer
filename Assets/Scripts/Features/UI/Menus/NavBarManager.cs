@@ -7,7 +7,7 @@ public class NavBarManager : MonoBehaviour
     private static NavBarManager _instance;
 
     [Header("Hide On Scenes")]
-    private string[] hideOnScenes = { "GameOverScene", "WinScene", "SplashScene", "MissionZeroScene" };
+    private string[] hideOnScenes = { "GameOverScene", "WinScene", "SplashScene", "MissionZeroScene", "RaceScene" };
 
     [Header("Nav Buttons")]
     public Button homeButton;
@@ -29,16 +29,16 @@ public class NavBarManager : MonoBehaviour
         }
         _instance = this;
         DontDestroyOnLoad(gameObject);
-    }
 
-    private void OnEnable()
-    {
+        // Subscribed for the object's whole life (not OnEnable/OnDisable): this object hides
+        // itself with SetActive(false), and an OnDisable unsubscribe meant it could never hear
+        // the next scene load to show itself again.
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
-    private void OnDisable()
+    private void OnDestroy()
     {
-        SceneManager.sceneLoaded -= OnSceneLoaded;
+        if (_instance == this) SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
     private void Start()
